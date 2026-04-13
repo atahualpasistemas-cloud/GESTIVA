@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>FácilVirtual POS — Licencia</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #09104D; --teal: #00D4AA; --green: #30709b;
+    --blue: #1E5FBE; --red: #E8503B; --amber: #E89340;
+    --text: #C8D4E0; --muted: #3A5A74; --border: #1A3050;
+  }
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--navy);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px 20px;
+  }
+  .card {
+    background: #0C1829; border: 1px solid var(--border);
+    border-radius: 14px; width: 100%; max-width: 440px;
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 0 0 1px rgba(0,212,170,.06);
+  }
+  .card-hdr {
+    background: #060F1E; padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .logo {
+    width: 48px; height: 48px; border-radius: 13px;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 900; color: #fff;
+    box-shadow: 0 4px 14px rgba(0,212,170,.2);
+    flex-shrink: 0;
+  }
+  .hdr-text { flex: 1; }
+  .hdr-title { font-size: 15px; font-weight: 700; color: #fff; }
+  .hdr-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .card-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* ESTADO */
+  .estado-box {
+    padding: 14px 16px; border-radius: 9px;
+    display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid;
+  }
+  .estado-box.demo    { background: rgba(232,147,64,.08); border-color: rgba(232,147,64,.3); }
+  .estado-box.activa  { background: rgba(13,107,94,.1);   border-color: rgba(0,212,170,.3); }
+  .estado-box.expirada{ background: rgba(232,80,59,.08);  border-color: rgba(232,80,59,.3); }
+  .estado-box.bloqueada{ background: rgba(232,80,59,.12); border-color: rgba(232,80,59,.5);}
+  .estado-titulo { font-size: 13px; font-weight: 700; }
+  .estado-box.demo     .estado-titulo { color: var(--amber); }
+  .estado-box.activa   .estado-titulo { color: var(--teal);  }
+  .estado-box.expirada .estado-titulo { color: var(--red);   }
+  .estado-box.bloqueada .estado-titulo{ color: var(--red);   }
+  .estado-det  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ID instalación */
+  .id-section { display: flex; flex-direction: column; gap: 6px; }
+  .id-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .id-value {
+    background: #060F1E; border: 1px solid var(--border);
+    border-radius: 7px; padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 600; color: var(--teal);
+    letter-spacing: .05em; display: flex; align-items: center; justify-content: space-between;
+  }
+  .btn-copy {
+    background: rgba(0,212,170,.1); border: 1px solid rgba(0,212,170,.25);
+    color: var(--teal); padding: 4px 10px; border-radius: 5px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    font-family: 'Sora', sans-serif; transition: all .15s;
+  }
+  .btn-copy:hover { background: rgba(0,212,170,.2); }
+
+  /* FORM */
+  .form-section { display: flex; flex-direction: column; gap: 10px; }
+  .form-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; display: block; }
+  .form-input {
+    width: 100%; background: #060F1E; border: 1.5px solid var(--border);
+    border-radius: 7px; color: var(--text); padding: 10px 12px;
+    font-size: 13px; font-family: 'Sora', sans-serif; outline: none;
+    transition: border-color .15s;
+  }
+  .form-input:focus { border-color: var(--blue); box-shadow: 0 0 0 2px rgba(30,95,190,.2); }
+  .form-input.code { font-family: 'JetBrains Mono', monospace; font-size: 15px; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+
+  .btn-activar {
+    width: 100%; padding: 12px;
+    background: linear-gradient(135deg, var(--green), #0A5549);
+    color: #fff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    box-shadow: 0 4px 16px rgba(13,107,94,.35);
+    transition: filter .15s;
+  }
+  .btn-activar:hover { filter: brightness(1.1); }
+  .btn-activar:disabled { opacity: .4; cursor: not-allowed; }
+
+  .msg-ok  { background: rgba(13,107,94,.12); border: 1px solid rgba(0,212,170,.3); color: var(--teal); padding: 10px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; display: none; }
+  .msg-err { background: rgba(232,80,59,.1);  border: 1px solid rgba(232,80,59,.3);  color: var(--red);  padding: 10px 14px; border-radius: 7px; font-size: 12px; font-weight: 600; display: none; }
+
+  .divider { height: 1px; background: var(--border); }
+
+  .contact-text { font-size: 11px; color: var(--muted); text-align: center; line-height: 1.6; }
+  .contact-text strong { color: var(--teal); }
+
+  .btn-continuar {
+    width: 100%; padding: 10px;
+    background: rgba(30,95,190,.15); border: 1px solid rgba(30,95,190,.35);
+    color: #90BBF0; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: 'Sora', sans-serif; transition: all .15s;
+  }
+  .btn-continuar:hover { background: rgba(30,95,190,.28); }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-hdr">
+    <div class="logo" id="logoImg">FV</div>
+    <div class="hdr-text">
+      <div class="hdr-title">FácilVirtual POS</div>
+      <div class="hdr-sub" id="hdrSub">Verificando licencia...</div>
+    </div>
+  </div>
+
+  <div class="card-body">
+
+    <!-- Estado actual -->
+    <div class="estado-box demo" id="estadoBox">
+      <div class="estado-titulo" id="estadoTitulo">⏳ Cargando...</div>
+      <div class="estado-det"   id="estadoDet"></div>
+    </div>
+
+    <!-- ID de instalación (para solicitar activación) -->
+    <div class="id-section">
+      <span class="id-label">ID de instalación — enviarlo para activar</span>
+      <div class="id-value">
+        <span id="instId">—</span>
+        <button class="btn-copy" onclick="copiarId()">📋 Copiar</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Formulario de activación -->
+    <div class="form-section" id="formActivacion">
+      <div>
+        <label class="form-label">Tu nombre / empresa</label>
+        <input class="form-input" type="text" id="inputNombre" placeholder="Nombre del negocio">
+      </div>
+      <div>
+        <label class="form-label">Código de activación</label>
+        <input class="form-input code" type="text" id="inputCodigo"
+          placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19"
+          oninput="formatCodigo(this)">
+      </div>
+      <div class="msg-ok"  id="msgOk">✅ ¡Licencia activada correctamente!</div>
+      <div class="msg-err" id="msgErr">✕ Código inválido. Verificá e intentá de nuevo.</div>
+      <button class="btn-activar" id="btnActivar" onclick="activar()">
+        🔑 Activar Licencia Completa
+      </button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="contact-text">
+      ¿No tenés código? Contactá al desarrollador con tu <strong>ID de instalación</strong>
+      para recibir tu clave de activación.<br>
+      La versión demo tiene un período de prueba de <strong id="diasTrialText">30 días</strong>.
+    </div>
+
+    <button class="btn-continuar" id="btnContinuar" onclick="continuar()">
+      Continuar en modo demo →
+    </button>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  const api = window.api || window.electronAPI || {};
+
+  // Formatear código mientras escribe: agrega guiones automáticamente
+  window.formatCodigo = function(input) {
+    let v = input.value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+    let result = '';
+    for (let i = 0; i < v.length && i < 16; i++) {
+      if (i > 0 && i % 4 === 0) result += '-';
+      result += v[i];
+    }
+    input.value = result;
+  };
+
+  window.copiarId = function() {
+    const id = document.getElementById('instId').textContent;
+    navigator.clipboard?.writeText(id).then(() => {
+      const btn = document.querySelector('.btn-copy');
+      btn.textContent = '✅ Copiado';
+      setTimeout(() => btn.textContent = '📋 Copiar', 2000);
+    }).catch(() => {
+      const inp = document.createElement('input');
+      inp.value = id; document.body.appendChild(inp);
+      inp.select(); document.execCommand('copy');
+      inp.remove();
+    });
+  };
+
+  window.activar = async function() {
+    const codigo  = (document.getElementById('inputCodigo').value || '').trim();
+    const nombre  = (document.getElementById('inputNombre').value || '').trim();
+    const msgOk   = document.getElementById('msgOk');
+    const msgErr  = document.getElementById('msgErr');
+    const btn     = document.getElementById('btnActivar');
+    msgOk.style.display = 'none';
+    msgErr.style.display = 'none';
+
+    if (codigo.replace(/-/g,'').length < 16) {
+      msgErr.textContent = '✕ El código debe tener 16 caracteres (XXXX-XXXX-XXXX-XXXX).';
+      msgErr.style.display = '';
+      return;
+    }
+
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      const res = await (typeof api.invoke === 'function'
+        ? api.invoke('licencia:activar', { codigo, clienteNombre: nombre })
+        : api.licenciaActivar?.({ codigo, clienteNombre: nombre }));
+
+      if (res?.ok) {
+        msgOk.style.display = '';
+        document.getElementById('estadoBox').className = 'estado-box activa';
+        document.getElementById('estadoTitulo').textContent = '✅ Licencia Activa';
+        document.getElementById('estadoDet').textContent = '¡Gracias, ' + (nombre||'') + '! El sistema está completamente habilitado.';
+        document.getElementById('formActivacion').style.display = 'none';
+        btn.textContent = '✅ Activado';
+        setTimeout(() => window.close?.(), 2500);
+      } else {
+        msgErr.textContent = '✕ ' + (res?.error || 'Código inválido');
+        msgErr.style.display = '';
+        btn.disabled = false; btn.textContent = '🔑 Activar Licencia Completa';
+      }
+    } catch(e) {
+      msgErr.textContent = '✕ Error: ' + e.message;
+      msgErr.style.display = '';
+      btn.disabled = false; btn.textContent = '🔑 Activar Licencia Completa';
+    }
+  };
+
+  window.continuar = function() {
+    window.close?.();
+    if (typeof api.send === 'function') api.send('licencia:continuar-demo');
+  };
+
+  // Cargar estado de licencia al iniciar
+  async function cargarEstado() {
+    try {
+      const estado = await (typeof api.invoke === 'function'
+        ? api.invoke('licencia:estado', null)
+        : api.licenciaEstado?.());
+
+      if (!estado) return;
+
+      document.getElementById('instId').textContent    = estado.instalacion_id || '—';
+      document.getElementById('diasTrialText').textContent = (estado.limites?.dias_trial || 30) + ' días';
+
+      const box   = document.getElementById('estadoBox');
+      const titulo= document.getElementById('estadoTitulo');
+      const det   = document.getElementById('estadoDet');
+
+      box.className = 'estado-box ' + (estado.modo || 'demo');
+
+      if (estado.modo === 'activa') {
+        titulo.textContent = '✅ Licencia Activa';
+        det.textContent    = estado.cliente_nombre ? 'Registrada a: ' + estado.cliente_nombre : 'Licencia completa habilitada.';
+        document.getElementById('formActivacion').style.display = 'none';
+        document.getElementById('hdrSub').textContent = 'Versión completa';
+
+      } else if (estado.modo === 'expirada') {
+        titulo.textContent = '⛔ Período de prueba vencido';
+        det.textContent    = 'El período de demo de ' + (estado.limites?.dias_trial||30) + ' días expiró. Contactá al desarrollador para activar la licencia.';
+        document.getElementById('btnContinuar').style.display = 'none';
+        document.getElementById('hdrSub').textContent = 'Demo expirada';
+
+      } else if (estado.modo === 'bloqueada') {
+        titulo.textContent = '🚫 Licencia bloqueada';
+        det.textContent    = 'Se detectó una irregularidad en la activación. Contactá al desarrollador.';
+        document.getElementById('btnContinuar').style.display = 'none';
+        document.getElementById('formActivacion').style.display = 'none';
+        document.getElementById('hdrSub').textContent = 'Acceso bloqueado';
+
+      } else {
+        // demo
+        const dias = estado.dias_restantes || 0;
+        titulo.textContent = '📋 Versión Demo — ' + dias + ' días restantes';
+        det.textContent    = 'Límites: ' + (estado.limites?.max_productos||30) + ' productos, ' +
+                             (estado.limites?.max_clientes||20) + ' clientes, ' +
+                             (estado.limites?.max_ventas_por_dia||15) + ' ventas/día.';
+        document.getElementById('hdrSub').textContent = dias + ' días de prueba restantes';
+        if (dias <= 7) {
+          titulo.textContent = '⚠ Demo — quedan solo ' + dias + ' días';
+        }
+      }
+    } catch(e) {
+      console.warn('No se pudo cargar estado de licencia:', e.message);
+    }
+  }
+
+  cargarEstado();
+})();
+</script>
+</body>
+</html>

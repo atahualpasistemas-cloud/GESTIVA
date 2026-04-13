@@ -1,0 +1,1113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>POS - Caja</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:       #30709b;
+      --green-btn:   #28a745;
+      --green-light: #e8f5e9;
+      --green-mid:   #c8e6c9;
+      --green-dark:  #145523;
+      --navy:        #09104D;
+      --bg:          #f0f4f1;
+      --panel:       #ffffff;
+      --border:      #dde8dd;
+      --text:        #6f866f;
+      --text2:       #707f82;
+      --accent:      #ff6b35;
+      --danger:      #dc3545;
+      --gold:        #f59e0b;
+      --shadow:      0 2px 8px rgba(0,0,0,.09);
+      --radius:      8px;
+      --topbar-h:    54px;
+      --footer-h:    46px;
+    }
+
+    html, body { height: 100%; font-family: 'DM Sans', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; font-size: 14px; }
+
+    /* ── APP SHELL ── */
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      height: var(--topbar-h);
+      min-height: var(--topbar-h);
+      background: var(--navy);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+    .topbar .lab { color: rgba(255,255,255,.6); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+    .topbar .lab.qty { margin-left: 6px; }
+
+    .input-bar {
+      width: 260px;
+      padding: 7px 11px;
+      background: rgba(255,255,255,.1);
+      border: 1.5px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      font-family: 'DM Mono', monospace;
+      transition: border-color .2s, background .2s;
+    }
+    .input-bar:focus { outline: none; background: rgba(255,255,255,.18); border-color: var(--green-btn); }
+    .input-bar::placeholder { color: rgba(255,255,255,.3); }
+
+    .input-qty {
+      width: 60px;
+      padding: 7px 8px;
+      background: rgba(255,255,255,.1);
+      border: 1.5px solid rgba(255,255,255,.2);
+      border-radius: 6px;
+      color: #fff;
+      font-size: 14px;
+      text-align: center;
+    }
+    .input-qty:focus { outline: none; border-color: var(--green-btn); }
+
+    .btn-search {
+      padding: 7px 14px;
+      background: var(--green-btn);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter .15s;
+      white-space: nowrap;
+    }
+    .btn-search:hover { filter: brightness(1.1); }
+
+    .store-title {
+      margin-left: auto;
+      color: #b0b8c1 !important;
+      font-size: 12px;
+      white-space: nowrap;
+      font-weight: 500;
+    }
+    .store-title * { color: #b0b8c1 !important; }
+    .store-title strong { color: #ffffff !important; font-weight: 700; }
+    #storeNombre { color: #ffffff !important; font-weight: 600; }
+
+    /* ── MAIN AREA ── */
+    .main-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      gap: 10px;
+      padding: 10px;
+      min-height: 0;
+    }
+
+    /* ── LEFT PANEL ── */
+    .left-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    /* ── ITEMS TABLE ── */
+    .items-table-wrap {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: auto;
+      box-shadow: var(--shadow);
+      min-height: 0;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .items-table thead th {
+      background: var(--green);
+      color: #fff;
+      padding: 9px 10px;
+      text-align: left;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .items-table thead th:nth-child(1) { width: 36px; text-align: center; }
+    .items-table thead th:nth-child(2) { width: 100px; }
+    .items-table thead th:nth-child(4),
+    .items-table thead th:nth-child(5),
+    .items-table thead th:nth-child(6) { text-align: right; }
+    .items-table tbody tr { cursor: pointer; border-bottom: 1px solid #f0f4f0; transition: background .1s; }
+    .items-table tbody tr:hover { background: var(--green-light); }
+    .items-table tbody tr.selected { background: #d4edda; }
+    .items-table tbody tr.selected td { font-weight: 600; }
+    .items-table tbody td { padding: 8px 10px; }
+    .items-table tbody td:nth-child(1) { text-align: center; color: var(--text2); font-size: 12px; }
+    .items-table tbody td:nth-child(2) { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--text2); }
+    .items-table tbody td:nth-child(4),
+    .items-table tbody td:nth-child(5),
+    .items-table tbody td:nth-child(6) { text-align: right; }
+    .items-table tbody td:nth-child(5) { color: var(--text2); }
+    .items-table tbody td:nth-child(6) { font-weight: 700; color: var(--green-dark); }
+    .items-table .empty-row td { text-align: center; color: #aaa; padding: 40px; font-style: italic; }
+
+    /* ── ACTION BUTTONS ROW ── */
+    .buttons-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 4px 0;
+    }
+    .small-btn {
+      padding: 6px 12px;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text);
+      transition: background .15s, border-color .15s, color .15s;
+      white-space: nowrap;
+    }
+    .small-btn:hover { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+    .small-btn.danger:hover { background: #fce4e4; border-color: var(--danger); color: var(--danger); }
+
+    /* ── COMPROBANTE SECTION ── */
+    .comprobante {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      display: flex;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }
+    .comprobante-left, .comprobante-right { flex: 1; min-width: 0; }
+    .comprobante h4 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text2);
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 5px;
+    }
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .form-row label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text2);
+      white-space: nowrap;
+      min-width: 52px;
+    }
+    .form-row input, .form-row select, .form-row textarea {
+      flex: 1;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+      min-width: 0;
+      background: #fff;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .form-row textarea { resize: none; }
+    .form-row input:focus, .form-row select:focus { outline: none; border-color: var(--green); }
+    .form-row input[readonly] { background: #f5f7f5; color: var(--text2); }
+    .form-row .two-cols { display: flex; gap: 8px; flex: 1; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      width: 230px;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* ── TOTALS BOX ── */
+    .totals {
+      background: var(--navy);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      flex-shrink: 0;
+    }
+    .tot-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    .tot-row .label { color: rgba(255,255,255,.55); font-weight: 500; }
+    .tot-row .value { color: rgba(255,255,255,.85); font-family: 'DM Mono', monospace; font-size: 12px; }
+    .tot-row.descuento .value { color: #69f0ae; }
+    .tot-row.recargo .value, .tot-row.interes .value { color: #ff7043; }
+
+    .tot-divider { height: 1px; background: rgba(255,255,255,.1); margin: 6px 0; }
+
+    .tot-row.total { padding-top: 4px; }
+    .tot-row.total .label { color: rgba(255,255,255,.8); font-size: 13px; font-weight: 700; }
+    .tot-row.total .value { font-size: 0; }
+    .total-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 26px;
+      font-weight: 700;
+      color: #7df069;
+      text-align: right;
+      margin: 4px 0 10px;
+      letter-spacing: -1px;
+    }
+    .total-prefix { font-size: 16px; opacity: .7; margin-right: 2px; }
+
+    /* badge forma de pago */
+    .fp-badge {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.788);
+      margin-bottom: 8px;
+      min-height: 16px;
+      transition: color .2s;
+    }
+    .fp-badge.active { color: #69f0ae; font-weight: 700; }
+
+    /* ── COBRAR BTN ── */
+    .pay-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: .5px;
+      box-shadow: 0 4px 14px rgba(40,167,69,.4);
+      transition: filter .15s, transform .1s, box-shadow .15s;
+      margin-bottom: 8px;
+    }
+    .pay-btn:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 6px 20px rgba(40,167,69,.5); }
+    .pay-btn:active:not(:disabled) { transform: scale(.98); }
+    .pay-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── SIDE ACTIONS ── */
+    .side-actions { display: flex; flex-direction: column; gap: 5px; }
+    .side-btn {
+      width: 100%;
+      padding: 8px 10px;
+      background: rgba(255,255,255,.08);
+      color: rgba(255, 255, 255, 0.973);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      text-align: left;
+    }
+    .side-btn:hover { background: rgba(255,255,255,.15); color: #fff; }
+
+    /* ── FOOTER ── */
+    .footer-bar {
+      height: var(--footer-h);
+      min-height: var(--footer-h);
+      background: var(--navy);
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .footer-left {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.957);
+      white-space: nowrap;
+    }
+    .footer-box {
+      display: inline-block;
+      background: var(--green-btn);
+      color: #fff;
+      padding: 1px 7px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .footer-user {
+      display: inline-block;
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.85);
+      padding: 1px 8px;
+      border-radius: 3px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+    .footer-buttons { margin-left: auto; display: flex; gap: 5px; flex-wrap: wrap; }
+    .footer-btn {
+      padding: 5px 11px;
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.75);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      white-space: nowrap;
+    }
+    .footer-btn:hover { background: rgba(255,255,255,.18); color: #fff; }
+    .footer-btn-caja { background: rgba(40,167,69,.25); border-color: rgba(40,167,69,.5); color: #69f0ae; }
+    .footer-btn-caja:hover { background: rgba(40,167,69,.4); }
+    #masDropdown {
+      display: none;
+      position: fixed;
+      background: #28436b;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 10px;
+      min-width: 180px;
+      z-index: 9999;
+      overflow: hidden;
+      box-shadow: 0 -8px 32px rgba(0,0,0,.5);
+      <button id="btnActivarLicencia">🔑 Activar Licencia</button>
+    }
+    #masDropdown.open { display: block; }
+    #masDropdown button {
+      display: block; width: 100%; border-radius: 0;
+      border: none; border-bottom: 1px solid rgba(255,255,255,.07);
+      text-align: left; padding: 11px 16px;
+      background: transparent; color: rgba(255,255,255,.85);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    #masDropdown button:last-child { border-bottom: none; }
+    #masDropdown button:hover { background: rgba(255,255,255,.1); color: #fff; }
+    .footer-btn-caja:hover { background: rgba(40,167,69,.4); }
+    .btn-tipo-cli{padding:3px 8px;border-radius:12px;border:1px solid #c8d9c8;background:#f5f8f5;color:#5a7a5a;cursor:pointer;font-size:11px;font-weight:700;transition:all .15s;}
+    .btn-tipo-cli:hover{background:#e8f5e9;}
+    .btn-tipo-cli.active{background:#2ea846;border-color:#2ea846;color:#fff;}
+    .btn-iva-modal{padding:4px 10px;border-radius:12px;border:1px solid #ddd;background:#f5f5f5;color:#555;cursor:pointer;font-size:11px;font-weight:600;transition:all .15s;}
+    .btn-iva-modal:hover{background:#e8f5e9;}
+    .btn-iva-modal.active{background:#2ea846;border-color:#2ea846;color:#fff;}
+    .cli-result-item{display:flex;align-items:center;padding:10px 18px;cursor:pointer;border-bottom:1px solid #f5f5f5;transition:background .1s;}
+    .cli-result-item:hover{background:#f0f8f0;}
+    #inputMontoRecibido::placeholder { color: rgba(255,255,255,.3); }
+    #inputMontoRecibido:focus { border-color: rgba(105,240,174,.6) !important; box-shadow: 0 0 0 3px rgba(105,240,174,.15); }
+
+    /* ── MODAL COBRO ── */
+    #modalCobro {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(10,18,32,.72);
+      backdrop-filter: blur(4px);
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #modalCobro.open { display: flex; animation: fadeIn .18s ease; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+    .modal-cobro-inner {
+      background: var(--panel);
+      border-radius: 12px;
+      box-shadow: 0 24px 64px rgba(0,0,0,.4);
+      width: 100%;
+      max-width: 860px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: slideUp .22s ease;
+    }
+
+    .mc-header {
+      background: linear-gradient(135deg, var(--navy), #243054);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .mc-header-title { color: #fff; font-size: 16px; font-weight: 700; letter-spacing: .3px; }
+    .mc-header-sub { color: rgba(255,255,255,.5); font-size: 11px; margin-top: 1px; }
+    .mc-close {
+      background: rgba(255,255,255,.12);
+      border: none;
+      color: rgba(255,255,255,.7);
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background .15s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mc-close:hover { background: rgba(255,255,255,.22); color: #fff; }
+
+    .mc-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── PREVIEW (izquierda) ── */
+    .mc-preview {
+      flex: 1;
+      overflow-y: auto;
+      padding: 18px;
+      border-right: 1px solid var(--border);
+      min-width: 0;
+    }
+    .preview-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text2);
+      margin-bottom: 10px;
+    }
+
+    /* Comprobante preview */
+    .comp-preview {
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+    .comp-preview-head {
+      background: var(--green);
+      color: #fff;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .comp-preview-head .comp-tipo { font-weight: 700; font-size: 13px; }
+    .comp-preview-head .comp-nro  { font-family: 'DM Mono', monospace; font-size: 11px; opacity: .8; }
+    .comp-preview-cliente { padding: 8px 12px; background: #f8fcf8; border-bottom: 1px solid var(--border); color: var(--text2); font-size: 12px; }
+
+    .comp-items { width: 100%; border-collapse: collapse; }
+    .comp-items th {
+      background: var(--green-light);
+      padding: 6px 10px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green-dark);
+      text-transform: uppercase;
+    }
+    .comp-items th:last-child, .comp-items td:last-child { text-align: right; }
+    .comp-items th:nth-child(3), .comp-items td:nth-child(3) { text-align: right; }
+    .comp-items td { padding: 7px 10px; border-bottom: 1px solid #f0f4f0; font-size: 12px; }
+    .comp-items tbody tr:last-child td { border-bottom: none; }
+    .comp-items td:last-child { font-weight: 700; color: var(--green-dark); }
+
+    .comp-totales {
+      border-top: 2px solid var(--border);
+      padding: 10px 12px;
+      background: #fafcfa;
+    }
+    .comp-tot-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 2px 0;
+      font-size: 12px;
+      color: var(--text2);
+    }
+    .comp-tot-row.big {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text);
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--border);
+    }
+    .comp-tot-row.big .val { color: var(--green-dark); font-family: 'DM Mono', monospace; }
+    .comp-tot-row .desc { color: #e53935; }
+    .comp-tot-row .rec  { color: #f57c00; }
+
+    /* ── PAGO (derecha) ── */
+    .mc-pago {
+      width: 300px;
+      min-width: 270px;
+      flex-shrink: 0;
+      overflow-y: auto;
+      padding: 18px;
+      background: #fafcfa;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .pago-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--text2);
+      margin-bottom: 6px;
+    }
+
+    /* Selector forma de pago */
+    .fp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
+    }
+    .fp-chip {
+      padding: 8px 6px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--panel);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all .15s;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .fp-chip:hover { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+    .fp-chip.selected { border-color: var(--green); background: var(--green); color: #fff; box-shadow: 0 2px 8px rgba(30,126,52,.3); }
+    .fp-chip .fp-ico { font-size: 15px; display: block; margin-bottom: 2px; }
+
+    /* Impacto info */
+    .fp-impacto {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      display: none;
+      border: 1px solid;
+    }
+    .fp-impacto.show { display: block; animation: fadeIn .15s ease; }
+    .fp-impacto.neutro   { background: #f5f5f5; color: #555; border-color: #ddd; }
+    .fp-impacto.descuento { background: #e8f5e9; color: #1b5e20; border-color: #c8e6c9; }
+    .fp-impacto.recargo  { background: #fff3e0; color: #e65100; border-color: #ffcc80; }
+    .fp-impacto.interes  { background: #fce4ec; color: #880e4f; border-color: #f48fb1; }
+
+    /* Total final en el panel de pago */
+    .pago-total-box {
+      background: var(--navy);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+    }
+    .pago-total-label { color: rgba(255,255,255,.5); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+    .pago-total-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 32px;
+      font-weight: 700;
+      color: #69f0ae;
+      line-height: 1.2;
+      margin: 4px 0;
+    }
+    .pago-fp-elegida { color: rgba(255,255,255,.55); font-size: 11px; min-height: 16px; }
+
+    /* Botón confirmar cobro */
+    .btn-confirmar-cobro {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #28a745, #1e7e34);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(40,167,69,.4);
+      transition: filter .15s, transform .1s;
+      letter-spacing: .4px;
+    }
+    .btn-confirmar-cobro:hover:not(:disabled) { filter: brightness(1.08); }
+    .btn-confirmar-cobro:active:not(:disabled) { transform: scale(.98); }
+    .btn-confirmar-cobro:disabled { opacity: .45; cursor: not-allowed; }
+
+    .btn-cancelar-cobro {
+      width: 100%;
+      padding: 9px;
+      background: transparent;
+      color: var(--text2);
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-cancelar-cobro:hover { background: #f0f4f0; }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.35);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .65s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 54px;
+      right: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 2000;
+    }
+    .toast {
+      padding: 9px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(0,0,0,.2);
+      animation: fadeIn .2s ease;
+      max-width: 320px;
+    }
+    .toast.success { background: #1e7e34; }
+    .toast.error   { background: #c62828; }
+    .toast.info    { background: #0277bd; }
+    .toast.warn    { background: #e65100; }
+
+    /* ── AUTOCOMPLETE ── */
+    #acBox {
+      position: fixed;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      z-index: 500;
+      min-width: 320px;
+      max-height: 220px;
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,.14);
+      font-size: 13px;
+    }
+    .ac-item {
+      padding: 9px 13px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f4f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      transition: background .1s;
+    }
+    .ac-item:hover { background: var(--green-light); }
+    .ac-item:last-child { border-bottom: none; }
+    .ac-item .ac-desc { font-weight: 500; color: var(--text); }
+    .ac-item .ac-precio { font-weight: 700; color: var(--green); font-family: 'DM Mono', monospace; font-size: 12px; white-space: nowrap; }
+    .ac-item .ac-stock { font-size: 11px; color: var(--text2); white-space: nowrap; }
+
+    /* ── PANEL INLINE DESC/REC ── */
+    #panelInline {
+      background: var(--panel);
+      border: 1.5px solid var(--green-mid);
+      border-radius: 6px;
+      padding: 10px 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      animation: fadeIn .15s ease;
+    }
+    #panelInline label { font-size: 12px; font-weight: 700; color: var(--green-dark); }
+    #panelInline input[type=number], #panelInline input[type=text] {
+      padding: 6px 9px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      font-size: 13px;
+    }
+    #panelInline input[type=number] { width: 90px; }
+    #panelInline input[type=text]   { flex: 1; min-width: 120px; }
+    #panelInline button {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="mainBox">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="left-controls" style="display:flex;align-items:center;gap:8px;">
+        <label class="lab">Código / Descripción</label>
+        <input id="barcode" class="input-bar" placeholder="Código o nombre..." autofocus>
+        <label class="lab qty">Cant.</label>
+        <input id="qty" class="input-qty" type="number" value="1" min="1">
+        <button id="buscarBtn" class="btn-search">🔍 Agregar</button>
+      </div>
+      <div class="title-right">
+        <div class="store-title"><span id="storeNombre">FacilVirtual</span> — Caja&nbsp;<strong>01</strong>&nbsp;&nbsp;|&nbsp;&nbsp;Cajero:&nbsp;<strong><span id="userName"></span></strong></div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="main-area">
+
+      <!-- LEFT PANEL -->
+      <section class="left-panel">
+        <div class="items-table-wrap">
+          <table id="itemsTable" class="items-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Código</th>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Unitario</th>
+                <th>Importe</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="empty-row"><td colspan="6">— Agregá productos escaneando o buscando por nombre —</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="buttons-row">
+          <button class="small-btn danger" id="quitarBtn">✕ Quitar</button>
+          <button class="small-btn" id="descuentoBtn">% Descuento</button>
+          <button class="small-btn" id="recargoBtn">↑ Recargo</button>
+          <button class="small-btn" id="interesBtn">∫ Interés</button>
+          <button class="small-btn" id="cambiarCantidadBtn">🔢 Cantidad</button>
+          <button class="small-btn" id="cambiarPrecioBtn">💲 Precio</button>
+        </div>
+
+        <div class="comprobante">
+          <div class="comprobante-left">
+            <h4>Comprobante</h4>
+            <div class="form-row">
+              <label>Fecha</label>
+              <input type="date" id="fecha">
+              <label>Tipo</label>
+              <select id="tipo" style="max-width:120px;">
+                <option value="Ticket">Ticket</option>
+                <option value="Factura">Factura</option>
+                <option value="Factura A">Factura A</option>
+                <option value="Factura B">Factura B</option>
+                <option value="Factura C">Factura C</option>
+                <option value="Presupuesto">Presupuesto</option>
+              </select>
+              <label>Nro.</label>
+              <input type="text" id="nro" readonly style="width:100px;font-family:'DM Mono',monospace;">
+            </div>
+            <div class="form-row">
+              <label>Obs.</label>
+              <textarea id="obs" rows="2" style="resize:none;"></textarea>
+            </div>
+          </div>
+
+          <div class="comprobante-right">
+            <h4 style="display:flex;justify-content:space-between;align-items:center;">
+              Cliente
+              <span id="clienteIdHidden" style="font-size:10px;color:#aaa;font-weight:400"></span>
+            </h4>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+              <button class="btn-tipo-cli active" data-iva="Consumidor Final" data-nombre="- Cliente Ocasional -">CF</button>
+              <button class="btn-tipo-cli" data-iva="Responsable Inscripto" data-nombre="">RI</button>
+              <button class="btn-tipo-cli" data-iva="Monotributista" data-nombre="">Mono</button>
+              <button class="btn-tipo-cli" data-iva="Exento" data-nombre="">Exento</button>
+            </div>
+            <div class="form-row">
+              <label>Sr/a.</label>
+              <input type="text" id="cliente" value="- Cliente Ocasional -">
+            </div>
+            <div class="form-row">
+              <label>Domicilio</label>
+              <input type="text" id="dom">
+            </div>
+            <div class="form-row">
+              <label>Localidad</label>
+              <input type="text" id="localidad">
+            </div>
+            <div class="form-row">
+              <div class="two-cols">
+                <div style="display:flex;align-items:center;gap:4px;flex:1;">
+                  <label>Tel.</label>
+                  <input type="text" id="telefono">
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;flex:1;">
+                  <label>IVA</label>
+                  <input type="text" id="iva" value="Consumidor Final" readonly style="background:#f5f5f5;font-size:11px;">
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px;">
+              <button class="small-btn" id="cambiarClienteBtn" style="flex:1;background:#1565c0;color:#fff;border-color:#1565c0;">🔍 Buscar Cliente</button>
+              <button class="small-btn" id="limpiarClienteBtn" title="Cliente Ocasional" style="padding:5px 10px;">✕</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL -->
+      <aside class="right-panel">
+        <div class="totals">
+          <div class="tot-row subtotal">
+            <span class="label">Subtotal</span>
+            <span class="value">$&thinsp;<span id="subtotal">0.00</span></span>
+          </div>
+          <div class="tot-row descuento">
+            <span class="label">Descuento</span>
+            <span class="value">−&thinsp;$&thinsp;<span id="descuento">0.00</span></span>
+          </div>
+          <div class="tot-row recargo">
+            <span class="label">Recargo</span>
+            <span class="value">+&thinsp;$&thinsp;<span id="recargo">0.00</span></span>
+          </div>
+          <div class="tot-row interes">
+            <span class="label">Interés <span id="interesPercent" style="font-size:10px;opacity:.7;"></span></span>
+            <span class="value">+&thinsp;$&thinsp;<span id="interes">0.00</span></span>
+          </div>
+          <div class="tot-divider"></div>
+          <div class="tot-row total">
+            <span class="label">Total</span>
+          </div>
+          <div class="total-amount"><span class="total-prefix">$</span><span id="total">0.00</span></div>
+          <div class="fp-badge" id="fpBadge">Sin forma de pago</div>
+
+          <button id="cobrarBtn" class="pay-btn" disabled>⚡ F2 — Cobrar</button>
+          <div class="side-actions">
+            <button class="side-btn" id="nuevaVentaBtn">↺ F4 — Nueva venta</button>
+            <button class="side-btn" id="formaPagoBtn">💳 F1 — Forma de pago</button>
+            <button class="side-btn" id="btnPdfPreview" style="background:rgba(21,101,192,.18);border-color:rgba(21,101,192,.5);color:#90caf9;">📄 Vista PDF</button>
+            <button class="side-btn" id="verPrecioBtn">🔍 F5 — Ver precio</button>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer-bar">
+      <div class="footer-left">
+        Caja <span class="footer-box">01</span>
+        &nbsp; Cajero <span class="footer-user" id="footerUser"></span>
+      </div>
+      <div class="footer-buttons">
+        <button class="footer-btn" id="btnGestionProd">📦 Productos</button>
+        <button class="footer-btn" id="btnGestionCli">👥 Clientes</button>
+        <button class="footer-btn footer-btn-caja" id="btnGestionCaja">💰 Control de Caja</button>
+        <button class="footer-btn" id="btnProvCuentas" style="background:rgba(245,158,11,.3);border-color:rgba(245,158,11,.6);">🏭 Compras/Prov.</button>
+        <button class="footer-btn" id="btnEstadisticas" style="background:rgba(156,39,176,.3);border-color:rgba(156,39,176,.6);">📊 Estadísticas</button>
+        <button class="footer-btn" id="btnMobileStats"
+          style="background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.5);color:#a5b4fc;"
+          title="Ver estadísticas en celular">📱</button>
+        <button class="footer-btn" id="btnWhatsApp" style="background:rgba(37,211,102,.2);border-color:rgba(37,211,102,.5);color:#25d366;position:relative;" title="WhatsApp">
+          <span style="font-size:14px">💬</span>
+          <span id="waBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:#ef4444;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;line-height:1">0</span>
+          WA
+        </button>
+        <button class="footer-btn" id="btnMasMenu" style="background:rgba(255,255,255,.08);letter-spacing:2px;">⋯ Más</button>
+      </div>
+    </footer>
+
+  </div><!-- /mainBox -->
+</div><!-- /app -->
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL DE COBRO — Vista previa + Forma de pago unificadas
+═══════════════════════════════════════════════════════════════ -->
+<div id="modalCobro">
+  <div class="modal-cobro-inner">
+
+    <!-- Header -->
+    <div class="mc-header">
+      <div>
+        <div class="mc-header-title">⚡ Confirmar Cobro</div>
+        <div class="mc-header-sub">Revisá el detalle y elegí la forma de pago</div>
+      </div>
+      <button class="mc-close" id="btnCerrarModal">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="mc-body">
+
+      <!-- PREVIEW comprobante -->
+      <div class="mc-preview">
+        <div class="preview-title">📄 Vista previa del comprobante</div>
+
+        <div class="comp-preview">
+          <div class="comp-preview-head">
+            <span class="comp-tipo" id="mcTipo">Ticket</span>
+            <span class="comp-nro" id="mcNro">Nro. 00000001</span>
+          </div>
+          <div class="comp-preview-cliente" id="mcCliente">Cliente Ocasional — Consumidor Final</div>
+          <table class="comp-items">
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th style="text-align:right">Cant.</th>
+                <th style="text-align:right">Unit.</th>
+                <th style="text-align:right">Importe</th>
+              </tr>
+            </thead>
+            <tbody id="mcItems"></tbody>
+          </table>
+          <div class="comp-totales">
+            <div class="comp-tot-row" id="mcRowDesc" style="display:none">
+              <span>Descuento</span><span class="desc" id="mcDesc"></span>
+            </div>
+            <div class="comp-tot-row" id="mcRowRec" style="display:none">
+              <span>Recargo</span><span class="rec" id="mcRec"></span>
+            </div>
+            <div class="comp-tot-row" id="mcRowInt" style="display:none">
+              <span>Interés <span id="mcIntPct"></span></span><span class="rec" id="mcInt"></span>
+            </div>
+            <div class="comp-tot-row" id="mcRowImpFP" style="display:none">
+              <span id="mcImpFPLabel">Recargo forma de pago</span>
+              <span id="mcImpFPVal" class="rec"></span>
+            </div>
+            <div class="comp-tot-row big">
+              <span>TOTAL</span>
+              <span class="val" id="mcTotal">$ 0.00</span>
+            </div>
+          </div>
+        </div>
+      </div><!-- /mc-preview -->
+
+      <!-- PAGO -->
+      <div class="mc-pago">
+        <div>
+          <div class="pago-section-title">💳 Forma de pago</div>
+          <div class="fp-grid" id="fpGrid">
+            <!-- chips generados por JS -->
+          </div>
+        </div>
+
+        <div class="fp-impacto" id="fpImpacto"></div>
+
+        <div class="pago-total-box">
+          <div class="pago-total-label">Total a cobrar</div>
+          <div class="pago-total-amount" id="pagoTotalAmount">$ 0.00</div>
+          <div class="pago-fp-elegida" id="pagoFpElegida">—</div>
+        </div>
+
+        <!-- Efectivo: monto recibido y vuelto -->
+        <div id="vueltoBox" style="display:none;margin-bottom:12px;">
+          <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">💵 Monto recibido</div>
+          <input type="number" id="inputMontoRecibido" min="0" step="0.01"
+            style="width:100%;padding:10px 12px;font-size:22px;font-weight:800;border-radius:8px;border:2px solid rgba(255,255,255,.35);background:#1a2a3a;color:#fff;-webkit-text-fill-color:#fff;text-align:right;outline:none;caret-color:#69f0ae;"
+            placeholder="0,00" oninput="calcularVuelto()">
+          <div id="vueltoDisplay" style="margin-top:8px;padding:10px 14px;border-radius:8px;background:rgba(46,168,70,.2);border:1px solid rgba(46,168,70,.4);display:none;">
+            <div style="font-size:11px;color:rgba(255,255,255,.75);text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Vuelto a entregar</div>
+            <div id="vueltoImporte" style="font-size:22px;font-weight:800;color:#69f0ae;">$ 0,00</div>
+          </div>
+          <!-- Atajos de monto rápido -->
+          <div id="montosRapidos" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;"></div>
+        </div>
+
+        <button class="btn-confirmar-cobro" id="btnConfirmarCobro" disabled>
+          ✅ Confirmar y Registrar
+        </button>
+        <button class="btn-cancelar-cobro" id="btnCancelarCobro">
+          Cancelar (ESC)
+        </button>
+      </div><!-- /mc-pago -->
+
+    </div><!-- /mc-body -->
+  </div><!-- /modal-inner -->
+</div><!-- /modalCobro -->
+
+<!-- MODAL BUSCAR CLIENTE -->
+<div id="modalBuscarCliente" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;width:560px;max-width:96vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;animation:pop .18s ease">
+    <div style="background:#0f1923;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+      <div style="color:#fff;font-weight:700;font-size:15px;">👤 Buscar / Seleccionar Cliente</div>
+      <button onclick="cerrarModalCliente()" style="background:none;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <div style="padding:14px 18px;border-bottom:1px solid #eee;flex-shrink:0;">
+      <input id="buscarClientePOS" type="text" placeholder="🔍 Nombre, apellido, CUIT o DNI..."
+        style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;outline:none;font-family:inherit;"
+        oninput="filtrarClientesPOS()">
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:11px;color:#888;">Cond. IVA:</span>
+        <button class="btn-iva-modal active" data-iva="Consumidor Final">Cons. Final</button>
+        <button class="btn-iva-modal" data-iva="Responsable Inscripto">Resp. Inscripto</button>
+        <button class="btn-iva-modal" data-iva="Monotributista">Monotrib.</button>
+        <button class="btn-iva-modal" data-iva="Exento">Exento</button>
+      </div>
+    </div>
+    <div id="resultadosClientesPOS" style="flex:1;overflow-y:auto;padding:4px 0;min-height:100px;">
+      <div style="text-align:center;padding:24px;color:#aaa;font-size:13px;">Escribí al menos 2 caracteres para buscar</div>
+    </div>
+    <div style="padding:12px 18px;border-top:1px solid #eee;display:flex;gap:8px;justify-content:space-between;flex-shrink:0;background:#f9f9f9;">
+      <button onclick="usarClienteOcasional()" style="padding:8px 14px;background:#fff;border:1.5px solid #c8d9c8;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;color:#5a7a5a;">
+        ⚡ Cliente Ocasional
+      </button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="abrirNuevoClientePOS()" style="padding:8px 16px;background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;color:#2e7d32;">
+          ➕ Nuevo Cliente
+        </button>
+        <button onclick="cerrarModalCliente()" style="padding:8px 14px;background:#f5f5f5;border:1px solid #ddd;border-radius:6px;cursor:pointer;font-size:12px;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Dropdown Más — fuera del footer para evitar clipping -->
+<div id="masDropdown">
+  <button id="btnGestionPromos">🏷️ Promociones</button>
+  <button id="btnGestionVentas">📋 Ventas</button>
+  <button id="btnContabilidad">📒 Contabilidad</button>
+  <button id="btnCostos">💰 Costos y Rentabilidad</button>
+  <button id="btnImportarProductos">📥 Importar Productos</button>
+  <button id="btnConfig">⚙ Configuración</button>
+  <button id="btnAbout">ℹ Acerca del sistema</button>
+  <button id="btnMigracion">📥 Migración de datos</button>
+  <button id="btnPerifericos">🖨 Test de periféricos</button>
+  <button id="btnActivarLicencia">🔑 Activar Licencia</button>
+</div>
+
+<script src="renderer/toast.js" onerror="void(0)"></script>
+<script src="renderer.js"></script>
+<script src="post-venta.js"></script>
+</body>
+</html>

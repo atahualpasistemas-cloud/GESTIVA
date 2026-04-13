@@ -1,0 +1,67 @@
+{
+  "name": "facilvirtual-pos",
+  "version": "2.0.0",
+  "description": "FacilVirtual POS — Sistema de Gestión para Argentina",
+  "main": "main.js",
+  "author": "FacilVirtual",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "build:dir": "electron-builder --win --x64 --dir"
+  },
+  "build": {
+    "appId": "com.facilvirtual.pos",
+    "productName": "FacilVirtual POS",
+    "copyright": "© 2025 FacilVirtual",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "requestedExecutionLevel": "requireAdministrator"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "FacilVirtual POS",
+      "runAfterFinish": true,
+      "license": "LICENSE.txt"
+    },
+    "files": [
+      "**/*",
+      "!dist/**",
+      "!node_modules/.cache/**",
+      "!*.md",
+      "!.git/**",
+      "!.gitignore"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+    "asar": true
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "nodemailer": "^6.9.13",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
